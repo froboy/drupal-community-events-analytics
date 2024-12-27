@@ -18,6 +18,16 @@ def fetch_all_events(base_url):
         response = requests.get(url_with_page)
         data = response.json()
         events.extend(data['list'])
+
+        # Print status
+        if 'last' in data:
+            last_url_parts = list(urlparse(data['last']))
+            last_query = parse_qs(last_url_parts[4])
+            total_pages = last_query.get('page', ['unknown'])[0]
+        else:
+            total_pages = 'unknown'
+        print(f"Fetched page {page} out of {total_pages}")
+
         if 'next' not in data or not data['next']:
             break
         page += 1
@@ -60,7 +70,7 @@ country_summary = {}  # Counter for events by country
 # Process events
 for event in events:
     total_events += 1  # Increment the counter
-    created = event['created']
+    created = event['field_date_of_event']['value']
     if created.isdigit():  # Check if the created field is a timestamp
         created_year = datetime.datetime.fromtimestamp(int(created)).year
     else:
